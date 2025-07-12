@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SlideSite Landing Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e8f0fe;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .content {
+      text-align: center;
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #4285f4;
+    }
+    .download-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #4285f4;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    .download-btn:hover {
+      background-color: #357ae8;
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <h1>Welcome to SlideSite!</h1>
+    <p>This is your website landing page after login.</p>
+    <a href="{{ url_for('static', filename='images/Whole_Slide_Tissue_Image_of_a_grade_IV_tumor.png') }}" download class="download-btn">
+      Download PNG
+    </a>
+  </div>
+</body>
+</html>
