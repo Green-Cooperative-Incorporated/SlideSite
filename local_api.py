@@ -6,18 +6,36 @@ import numpy as np
 app = Flask(__name__)
 DB_PATH = 'database.db'  # Your local SQLite DB
 png_FOLDER = 'png_files'  # Folder where your .png files live
+from flask import send_file
+from io import BytesIO
 
 @app.route('/get-png')
 def get_png():
     filename = request.args.get('filename')
     if not filename or not filename.endswith('.png'):
         return "Invalid filename", 400
-    
-    filepath = os.path.join(png_FOLDER, filename)
-    if not os.path.exists(filepath):
-        return "File not found", 404
-    
-    return send_file(filepath, as_attachment=True)
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("SELECT image_data FROM png_files WHERE filename = ?", (filename,))
+        row = cur.fetchone()
+        conn.close()
+
+        if not row:
+            return "File not found in database", 404
+
+        # Convert BLOB to file-like object and send
+        image_blob = row[0]
+        return send_file(
+            BytesIO(image_blob),
+            mimetype='image/png',
+            as_attachment=True,
+            download_name=filename
+        )
+    except Exception as e:
+        return f"Server error: {str(e)}", 500
+
 
 @app.route('/list-png')
 def list_png():
