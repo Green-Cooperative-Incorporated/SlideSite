@@ -2,19 +2,20 @@ import sqlite3
 import os
 
 # Directory where your PNG files are stored
-PNG_FOLDER = r'c:\Users\carso\Documents\slide_images'  # or any folder on your system
+PNG_FOLDER = r'c:\Users\carso\Documents\slide_images'
 
 # Connect to database (creates it if it doesn't exist)
-conn = sqlite3.connect('database.db')
+conn = sqlite3.connect('database_new.db')
 cursor = conn.cursor()
 
-# Create table if it doesn't exist
+# Create table with BLOB column if it doesn't exist
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS png_files (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         filename TEXT NOT NULL,
         description TEXT,
-        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        image_data BLOB
     )
 ''')
 
@@ -26,10 +27,18 @@ for filename in os.listdir(PNG_FOLDER):
         # You can add smarter logic here to generate descriptions
         description = f"Auto-added file: {filename}"
 
-        # Avoid duplicates by checking first (optional)
+        # Avoid duplicates by checking first
         cursor.execute('SELECT 1 FROM png_files WHERE filename = ?', (filename,))
         if cursor.fetchone() is None:
-            cursor.execute('INSERT INTO png_files (filename, description) VALUES (?, ?)', (filename, description))
+            # Read image as binary
+            with open(filepath, 'rb') as f:
+                image_blob = f.read()
+
+            cursor.execute('''
+                INSERT INTO png_files (filename, description, image_data)
+                VALUES (?, ?, ?)
+            ''', (filename, description, image_blob))
+
             print(f"Inserted: {filename}")
         else:
             print(f"Skipped (already exists): {filename}")

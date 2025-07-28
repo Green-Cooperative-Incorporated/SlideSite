@@ -4,7 +4,7 @@ import sqlite3
 import numpy as np
 
 app = Flask(__name__)
-DB_PATH = 'database.db'  # Your local SQLite DB
+DB_PATH = 'database_new.db'  # Your local SQLite DB
 png_FOLDER = 'png_files'  # Folder where your .png files live
 from flask import send_file
 from io import BytesIO
