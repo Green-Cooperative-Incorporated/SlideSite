@@ -1,39 +1,64 @@
 import requests
 import json
-import time
-import subprocess
+import base64
 import os
+# CONFIG
+GITHUB_USERNAME = "Lgreen02"
+REPO_NAME = "SlideSite"
+BRANCH = "main"
+FILE_PATH = "ngrok_url.json"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
 
 def get_ngrok_url():
     try:
-        res = requests.get("http://localhost:8080/api/tunnels")
+        res = requests.get("http://localhost:4040/api/tunnels")
         tunnels = res.json()["tunnels"]
         for t in tunnels:
             if t["proto"] == "https":
                 return t["public_url"]
     except Exception as e:
-        print("Error getting Ngrok URL:", e)
+        print("Error fetching Ngrok URL:", e)
     return None
 
-def save_to_json(url, path):
-    with open(path, "w") as f:
-        json.dump({"ngrok_url": url}, f, indent=2)
+def get_file_sha():
+    url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{REPO_NAME}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    res = requests.get(url, headers=headers)
+    if res.status_code == 200:
+        return res.json()["sha"]
+    return None
 
-def push_to_github(commit_message="Update ngrok_url"):
-    try:
-        subprocess.run(["git", "add", "ngrok_url.json"], check=True)
-        subprocess.run(["git", "commit", "-m", commit_message], check=True)
-        subprocess.run(["git", "push"], check=True)
-        print("Changes pushed to GitHub.")
-    except subprocess.CalledProcessError as e:
-        print("Git error:", e)
+def update_github_file(ngrok_url):
+    content = json.dumps({"ngrok_url": ngrok_url}, indent=2)
+    encoded_content = base64.b64encode(content.encode()).decode()
+    file_sha = get_file_sha()
 
-# Full flow
-json_path = "ngrok_url.json"
+    payload = {
+        "message": "Update ngrok_url.json",
+        "content": encoded_content,
+        "branch": BRANCH
+    }
+    if file_sha:
+        payload["sha"] = file_sha  # Required for updating
+
+    url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{REPO_NAME}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    res = requests.put(url, headers=headers, json=payload)
+
+    if res.status_code in [200, 201]:
+        print("Successfully updated ngrok_url.json on GitHub.")
+    else:
+        print("GitHub API error:", res.status_code, res.text)
+
+# MAIN
 ngrok_url = get_ngrok_url()
 if ngrok_url:
-    print("Updating ngrok_url.json:", ngrok_url)
-    save_to_json(ngrok_url, json_path)
-    push_to_github()
+    update_github_file(ngrok_url)
 else:
-    print("Ngrok not active?")
+    print("Ngrok not running or tunnel not available.")

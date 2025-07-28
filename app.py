@@ -4,7 +4,18 @@ import requests
 from flask import send_file, Response
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Needed for flash messages
-LOCAL_API = "http://localhost:5000"  # Replace with your ngrok URL when exposed
+import json
+
+
+def load_local_api_url():
+    try:
+        with open(os.path.join(os.path.dirname(__file__), 'ngrok_url.json')) as f:
+            return json.load(f)["ngrok_url"]
+    except:
+        return "https://fallback-url.com"
+
+LOCAL_API = load_local_api_url()
+
 # Dummy user for demonstration
 USER_CREDENTIALS = {
     'username': 'admin',
