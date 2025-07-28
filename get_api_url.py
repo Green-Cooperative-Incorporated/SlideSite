@@ -3,7 +3,7 @@ import json
 import base64
 import os
 # CONFIG
-GITHUB_USERNAME = "Lgreen02"
+GITHUB_USERNAME = "Green-Cooperative-Incorporated"
 REPO_NAME = "SlideSite"
 BRANCH = "main"
 FILE_PATH = "ngrok_url.json"
@@ -13,7 +13,11 @@ import os
 load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-
+print("Loaded token:", GITHUB_TOKEN[:6] + "..." if GITHUB_TOKEN else "NOT FOUND")
+def save_local_ngrok_file(ngrok_url):
+    with open("ngrok_url.json", "w") as f:
+        json.dump({"ngrok_url": ngrok_url}, f, indent=2)
+    print("Saved ngrok_url.json locally.")
 
 def get_ngrok_url():
     try:
@@ -59,6 +63,8 @@ def update_github_file(ngrok_url):
 # MAIN
 ngrok_url = get_ngrok_url()
 if ngrok_url:
+    save_local_ngrok_file(ngrok_url)   # ← new
     update_github_file(ngrok_url)
+    print(ngrok_url)
 else:
     print("Ngrok not running or tunnel not available.")
