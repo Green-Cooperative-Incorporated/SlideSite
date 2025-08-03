@@ -11,6 +11,7 @@ cursor.execute('''
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
 ''')
-
+cursor.execute('''ALTER TABLE users ADD COLUMN verified BOOLEAN DEFAULT 0;
+ ''')
 conn.commit()
 conn.close()
