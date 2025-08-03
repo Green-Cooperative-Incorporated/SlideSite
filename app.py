@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 import os
 import requests
 from flask import send_file, Response
+from werkzeug.security import check_password_hash
+import sqlite3
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Needed for flash messages
 import json
@@ -26,24 +28,62 @@ USER_CREDENTIALS = {
 def home():
     return redirect(url_for('login'))
 
+from werkzeug.security import check_password_hash
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        if username == USER_CREDENTIALS['username'] and password == USER_CREDENTIALS['password']:
+        conn = sqlite3.connect('database_new.db')
+        cur = conn.cursor()
+        cur.execute("SELECT password FROM users WHERE username = ?", (username,))
+        row = cur.fetchone()
+        conn.close()
+
+        if row and check_password_hash(row[0], password):
             return redirect(url_for('slidesite'))
         else:
             flash('Invalid credentials. Please try again.')
             return redirect(url_for('login'))
-    
+
     return render_template('login.html')
+
 
 @app.route('/slidesite')
 def slidesite():
     return render_template('slidesite.html')
 
+from werkzeug.security import generate_password_hash
+from flask import render_template, request, redirect, url_for, flash
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username'].strip()
+        password = request.form['password']
+
+        if not username or not password:
+            flash("Both fields are required.")
+            return redirect(url_for('register'))
+
+        hashed_pw = generate_password_hash(password)
+
+        conn = sqlite3.connect('database_new.db')
+        cur = conn.cursor()
+        try:
+            cur.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_pw))
+            conn.commit()
+            flash("Account created successfully! You can now log in.")
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            flash("Username already exists.")
+            return redirect(url_for('register'))
+        finally:
+            conn.close()
+
+    return render_template('register.html')
 
 
 
