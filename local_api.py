@@ -194,6 +194,23 @@ def check_user_verified():
             return jsonify({'verified': False})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+@app.route('/verify-user', methods=['POST'])
+def verify_user():
+    data = request.json
+    email = data.get('email')
+
+    if not email:
+        return jsonify({'error': 'Missing email'}), 400
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET verified = 1 WHERE username = ?", (email,))
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'verified'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/get-user-image-name')
 def get_user_image_name():
