@@ -18,7 +18,7 @@ def set_db_size_limit(db_path='database_new.db', max_gb=10):
 
 # Call this once at startup
 set_db_size_limit()
-set_db_size_limit('image_database.db')
+set_db_size_limit('image_db_new.db')
 
 app = Flask(__name__)
 DB_PATH = 'database_new.db'  # Your local SQLite DB
@@ -48,7 +48,7 @@ def get_png():
         return "Invalid request", 400
 
     try:
-        conn = sqlite3.connect('image_database.db')
+        conn = sqlite3.connect('image_db_new.db')
         cur = conn.cursor()
         cur.execute(
             "SELECT image_data FROM user_images WHERE filename = ? AND user_email = ?",

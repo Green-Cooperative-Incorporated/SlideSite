@@ -1,3 +1,4 @@
 *.env
 image_database.db
 imagedb_init.py
+image_db_new.db
