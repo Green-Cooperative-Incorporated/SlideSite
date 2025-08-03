@@ -10,7 +10,12 @@ from flask_mail import Mail, Message
 
 from itsdangerous import URLSafeTimedSerializer
 from dotenv import load_dotenv
+from werkzeug.security import check_password_hash
 
+from werkzeug.security import generate_password_hash
+from flask import render_template, request, redirect, url_for, flash
+from flask_mail import Message
+from werkzeug.security import generate_password_hash
 load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
@@ -58,7 +63,7 @@ USER_CREDENTIALS = {
 def home():
     return redirect(url_for('login'))
 
-from werkzeug.security import check_password_hash
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -85,10 +90,6 @@ def login():
 def slidesite():
     return render_template('slidesite.html')
 
-from werkzeug.security import generate_password_hash
-from flask import render_template, request, redirect, url_for, flash
-from flask_mail import Message
-from werkzeug.security import generate_password_hash
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
