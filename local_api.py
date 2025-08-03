@@ -7,20 +7,20 @@ from dotenv import load_dotenv
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')  # Loaded from your local .env
 
-@app.route('/get-secret-key')
-def get_secret_key():
-    token = request.args.get('auth')  # simple auth
-    if token != os.getenv("SECRET_KEY"):
-        return "Unauthorized", 401
 
-    return jsonify({'SECRET_KEY': SECRET_KEY})
 
 app = Flask(__name__)
 DB_PATH = 'database_new.db'  # Your local SQLite DB
 png_FOLDER = 'png_files'  # Folder where your .png files live
 from flask import send_file
 from io import BytesIO
+@app.route('/get-secret-key')
+def get_secret_key():
+    token = request.args.get('auth')  # simple auth
+    if token != os.getenv("API_TOKEN"):
+        return "Unauthorized", 401
 
+    return jsonify({'SECRET_KEY': SECRET_KEY})
 @app.route('/get-png')
 def get_png():
     filename = request.args.get('filename')
