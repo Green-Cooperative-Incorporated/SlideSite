@@ -16,8 +16,10 @@ from werkzeug.security import generate_password_hash
 from flask import render_template, request, redirect, url_for, flash
 from flask_mail import Message
 from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
+
 app = Flask(__name__)
-import requests
+from flask import session
 def load_local_api_url():
     try:
         with open(os.path.join(os.path.dirname(__file__), 'ngrok_url.json')) as f:
@@ -76,6 +78,7 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'greencooperativeinc@gmail.com'
 app.config['MAIL_PASSWORD'] = fetch_mail_password() or 'fallback-password'
 app.config['MAIL_DEFAULT_SENDER'] = 'greencooperativeinc@gmail.com'
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024 * 1024  # 2GB
 
 mail = Mail(app)
 
@@ -107,6 +110,7 @@ def login():
         conn.close()
 
         if row and check_password_hash(row[0], password):
+            session['user_email'] = username  # track logged-in user
             return redirect(url_for('slidesite'))
         else:
             flash('Invalid credentials. Please try again.')
@@ -167,17 +171,23 @@ def confirm_email(token):
 
     return render_template('confirm_email.html', success=True)
 
-
 @app.route('/download/<filename>')
 def download_image(filename):
+
+    user_email = session.get('user_email')
+    if not user_email:
+        return "Unauthorized", 401
+
     try:
-        # Fetch file from local API
-        response = requests.get(f'{LOCAL_API}/get-png', params={'filename': filename}, stream=True)
+        response = requests.get(
+            f'{LOCAL_API}/get-png',
+            params={'filename': filename, 'email': user_email},
+            stream=True
+        )
 
         if response.status_code != 200:
             return f"Error fetching file: {response.text}", response.status_code
 
-        # Relay the file directly to the user
         return Response(
             response.iter_content(chunk_size=8192),
             headers={
@@ -186,9 +196,45 @@ def download_image(filename):
             },
             direct_passthrough=True
         )
-
     except Exception as e:
         return f"Download failed: {str(e)}", 500
+from flask import session
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    user_email = session.get('user_email')
+    if not user_email:
+        return "Unauthorized", 401
+
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if not file or not file.filename.lower().endswith('.png'):
+            flash("Please upload a valid PNG file.")
+            return redirect(url_for('upload'))
+
+        filename = secure_filename(file.filename)
+
+        # Send file to local API
+        try:
+            res = requests.post(
+                f"{LOCAL_API}/store-user-image",
+                data={
+                    'user_email': user_email,
+                    'filename': filename
+                },
+                files={'file': (filename, file.stream, file.mimetype)}
+            )
+            if res.status_code == 200:
+                flash("File uploaded successfully.")
+            else:
+                flash(f"Upload failed: {res.text}")
+        except Exception as e:
+            flash(f"Error connecting to local API: {e}")
+
+        return redirect(url_for('upload'))
+
+    return render_template('upload.html')
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
