@@ -162,13 +162,16 @@ def confirm_email(token):
     if not email:
         return render_template('confirm_email.html', success=False)
 
-    conn = sqlite3.connect('database_new.db')
-    cur = conn.cursor()
-    cur.execute("UPDATE users SET verified = 1 WHERE username = ?", (email,))
-    conn.commit()
-    conn.close()
+    # ✅ Make sure this updates the right table (local DB)
+    try:
+        res = requests.post(f"{LOCAL_API}/verify-user", json={"email": email})
+        if res.status_code == 200:
+            return render_template('confirm_email.html', success=True)
+        else:
+            return render_template('confirm_email.html', success=False)
+    except Exception as e:
+        return f"Verification failed: {str(e)}", 500
 
-    return render_template('confirm_email.html', success=True)
 @app.route('/my-image')
 def my_image():
     user_email = session.get('user_email')

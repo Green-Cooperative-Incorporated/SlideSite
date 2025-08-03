@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect(r'C:\Users\carso\Documents\GitHub\SlideSite\database_new.db')
+conn = sqlite3.connect(r'C:\Users\carso\Documents\GitHub\SlideSite\image_db_new.db')
 cursor = conn.cursor()
 
 cursor.execute('''
