@@ -2,6 +2,18 @@ from flask import Flask, request, send_file, jsonify
 import os
 import sqlite3
 import numpy as np
+from dotenv import load_dotenv
+
+load_dotenv()
+SECRET_KEY = os.getenv('SECRET_KEY')  # Loaded from your local .env
+
+@app.route('/get-secret-key')
+def get_secret_key():
+    token = request.args.get('auth')  # simple auth
+    if token != os.getenv("SECRET_KEY"):
+        return "Unauthorized", 401
+
+    return jsonify({'SECRET_KEY': SECRET_KEY})
 
 app = Flask(__name__)
 DB_PATH = 'database_new.db'  # Your local SQLite DB

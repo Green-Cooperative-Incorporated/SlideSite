@@ -9,16 +9,39 @@ import json
 from flask_mail import Mail, Message
 
 from itsdangerous import URLSafeTimedSerializer
-from dotenv import load_dotenv
+
 from werkzeug.security import check_password_hash
 
 from werkzeug.security import generate_password_hash
 from flask import render_template, request, redirect, url_for, flash
 from flask_mail import Message
 from werkzeug.security import generate_password_hash
-load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY')
+import requests
+def load_local_api_url():
+    try:
+        with open(os.path.join(os.path.dirname(__file__), 'ngrok_url.json')) as f:
+            return json.load(f)["ngrok_url"]
+    except:
+        return "https://fallback-url.com"
+
+LOCAL_API = load_local_api_url()
+def fetch_secret_key():
+    try:
+        res = requests.get(
+            f"{LOCAL_API}/get-secret-key",
+            params={'auth': 'super_secure_token_123'}
+        )
+        if res.status_code == 200:
+            return res.json()['SECRET_KEY']
+        else:
+            print("Failed to fetch SECRET_KEY:", res.status_code)
+    except Exception as e:
+        print("Error fetching SECRET_KEY:", e)
+    return 'fallback-dev-secret'
+
+app.secret_key = fetch_secret_key()
+
 # Token generation and confirmation
 def get_serializer():
     return URLSafeTimedSerializer(app.secret_key)
@@ -44,14 +67,7 @@ app.config['MAIL_DEFAULT_SENDER'] = 'greencooperativeinc@gmail.com'
 mail = Mail(app)
 
 
-def load_local_api_url():
-    try:
-        with open(os.path.join(os.path.dirname(__file__), 'ngrok_url.json')) as f:
-            return json.load(f)["ngrok_url"]
-    except:
-        return "https://fallback-url.com"
 
-LOCAL_API = load_local_api_url()
 
 # Dummy user for demonstration
 USER_CREDENTIALS = {
