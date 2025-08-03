@@ -47,6 +47,18 @@
       color: red;
       text-align: center;
     }
+    .create-account {
+      margin-top: 15px;
+      text-align: center;
+    }
+    .create-account a {
+      text-decoration: none;
+      color: #4285f4;
+      font-size: 14px;
+    }
+    .create-account a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -62,6 +74,9 @@
       <input type="password" name="password" placeholder="Password" required />
       <button type="submit">Log In</button>
     </form>
+    <div class="create-account">
+      <p>Don't have an account? <a href="{{ url_for('register') }}">Create one here</a></p>
+    </div>
   </div>
 </body>
 </html>
