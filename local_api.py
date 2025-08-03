@@ -21,6 +21,13 @@ def get_secret_key():
         return "Unauthorized", 401
 
     return jsonify({'SECRET_KEY': SECRET_KEY})
+@app.route('/get-mail-password')
+def get_mail_password():
+    token = request.args.get('auth')
+    if token != os.getenv("API_TOKEN"):
+        return "Unauthorized", 401
+
+    return jsonify({'MAIL_PASSWORD': os.getenv('MAIL_PASSWORD')})
 @app.route('/get-png')
 def get_png():
     filename = request.args.get('filename')

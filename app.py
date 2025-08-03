@@ -40,6 +40,19 @@ def fetch_secret_key():
         print("Error fetching SECRET_KEY:", e)
     return 'fallback-dev-secret'
 
+def fetch_mail_password():
+    try:
+        res = requests.get(
+            f"{LOCAL_API}/get-mail-password",
+            params={'auth': 'super_secure_token_123'}
+        )
+        if res.status_code == 200:
+            return res.json().get('MAIL_PASSWORD')
+        else:
+            print("Failed to fetch MAIL_PASSWORD:", res.status_code)
+    except Exception as e:
+        print("Error fetching MAIL_PASSWORD:", e)
+    return None
 app.secret_key = fetch_secret_key()
 
 # Token generation and confirmation
@@ -61,7 +74,7 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'greencooperativeinc@gmail.com'
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_PASSWORD'] = fetch_mail_password() or 'fallback-password'
 app.config['MAIL_DEFAULT_SENDER'] = 'greencooperativeinc@gmail.com'
 
 mail = Mail(app)
