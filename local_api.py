@@ -21,7 +21,7 @@ set_db_size_limit()
 set_db_size_limit('image_db_new.db')
 
 app = Flask(__name__)
-DB_PATH = 'database_new.db'  # Your local SQLite DB
+DB_PATH = 'image_db_new.db'  # Your local SQLite DB
 png_FOLDER = 'png_files'  # Folder where your .png files live
 from flask import send_file
 from io import BytesIO
@@ -93,6 +93,56 @@ def query_db():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 from flask import request, jsonify
+from werkzeug.security import check_password_hash, generate_password_hash
+
+@app.route('/check-user-login', methods=['POST'])
+def check_user_login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({'success': False, 'error': 'Missing credentials'}), 400
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("SELECT password FROM users WHERE username = ?", (username,))
+        row = cur.fetchone()
+        conn.close()
+
+        if row and check_password_hash(row[0], password):
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/register-user', methods=['POST'])
+def register_user():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({'success': False, 'error': 'Missing fields'}), 400
+
+    try:
+        hashed_pw = generate_password_hash(password)
+
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("INSERT INTO users (username, password, verified) VALUES (?, ?, 0)", (username, hashed_pw))
+        conn.commit()
+        conn.close()
+
+        return jsonify({'success': True})
+    except sqlite3.IntegrityError:
+        return jsonify({'success': False, 'error': 'Username already exists'}), 409
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/store-user-image', methods=['POST'])
 @app.route('/store-user-image', methods=['POST'])
@@ -125,6 +175,41 @@ def store_user_image():
         return jsonify({"status": "success", "filename": filename})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@app.route('/check-user-verified', methods=['GET'])
+def check_user_verified():
+    email = request.args.get('email')
+    if not email:
+        return jsonify({'error': 'Missing email'}), 400
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("SELECT verified FROM users WHERE username = ?", (email,))
+        row = cur.fetchone()
+        conn.close()
+
+        if row and row[0] == 1:
+            return jsonify({'verified': True})
+        else:
+            return jsonify({'verified': False})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/get-user-image-name')
+def get_user_image_name():
+    user_email = request.args.get('email')
+    if not user_email:
+        return "Missing email", 400
+
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT filename FROM user_images WHERE user_email = ?", (user_email,))
+    row = cur.fetchone()
+    conn.close()
+
+    if row:
+        return jsonify({'filename': row[0]})
+    return "No image found", 404
 
 if __name__ == '__main__':
     os.makedirs(png_FOLDER, exist_ok=True)

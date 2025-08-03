@@ -96,25 +96,26 @@ def home():
     return redirect(url_for('login'))
 
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        conn = sqlite3.connect('database_new.db')
-        cur = conn.cursor()
-        cur.execute("SELECT password FROM users WHERE username = ?", (username,))
-        row = cur.fetchone()
-        conn.close()
+        try:
+            res = requests.post(f"{LOCAL_API}/check-user-login", json={
+                "username": username,
+                "password": password
+            })
 
-        if row and check_password_hash(row[0], password):
-            session['user_email'] = username  # track logged-in user
-            return redirect(url_for('slidesite'))
-        else:
-            flash('Invalid credentials. Please try again.')
-            return redirect(url_for('login'))
+            if res.status_code == 200 and res.json().get('success'):
+                session['user_email'] = username
+                return redirect(url_for('slidesite'))
+            else:
+                flash(res.json().get('error', 'Login failed.'))
+        except Exception as e:
+            flash(f"Error contacting login API: {e}")
+        return redirect(url_for('login'))
 
     return render_template('login.html')
 
@@ -123,37 +124,35 @@ def login():
 def slidesite():
     return render_template('slidesite.html')
 
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username'].strip()
         password = request.form['password']
-        hashed_pw = generate_password_hash(password)
 
-        conn = sqlite3.connect('database_new.db')
-        cur = conn.cursor()
         try:
-            # insert with verified = 0
-            cur.execute("INSERT INTO users (username, password, verified) VALUES (?, ?, 0)", (username, hashed_pw))
-            conn.commit()
+            res = requests.post(f"{LOCAL_API}/register-user", json={
+                "username": username,
+                "password": password
+            })
 
-            # generate email verification token
-            token = generate_verification_token(username)
-            confirm_url = url_for('confirm_email', token=token, _external=True)
+            if res.status_code == 200 and res.json().get('success'):
+                # Generate email token and send mail
+                token = generate_verification_token(username)
+                confirm_url = url_for('confirm_email', token=token, _external=True)
 
-            # send email
-            msg = Message("Confirm Your Account", recipients=[username])
-            msg.body = f"Hi, please verify your account by clicking this link:\n\n{confirm_url}"
-            mail.send(msg)
+                msg = Message("Confirm Your Account", recipients=[username])
+                msg.body = f"Hi, please verify your account:\n\n{confirm_url}"
+                mail.send(msg)
 
-            flash("Account created! Check your email to verify.")
-            return redirect(url_for('login'))
-        except sqlite3.IntegrityError:
-            flash("Username/email already exists.")
-            return redirect(url_for('register'))
-        finally:
-            conn.close()
+                flash("Account created! Check your email to verify.")
+                return redirect(url_for('login'))
+            else:
+                flash(res.json().get('error', 'Registration failed.'))
+
+        except Exception as e:
+            flash(f"Error contacting registration API: {e}")
+        return redirect(url_for('register'))
 
     return render_template('register.html')
 
@@ -170,6 +169,21 @@ def confirm_email(token):
     conn.close()
 
     return render_template('confirm_email.html', success=True)
+@app.route('/my-image')
+def my_image():
+    user_email = session.get('user_email')
+    if not user_email:
+        return "Unauthorized", 401
+
+    try:
+        res = requests.get(f"{LOCAL_API}/get-user-image-name", params={'email': user_email})
+        if res.status_code == 200:
+            filename = res.json().get('filename')
+            if filename:
+                return redirect(url_for('download_image', filename=filename))
+        return "No image found.", 404
+    except Exception as e:
+        return f"Error: {str(e)}", 500
 
 @app.route('/download/<filename>')
 def download_image(filename):
@@ -198,13 +212,21 @@ def download_image(filename):
         )
     except Exception as e:
         return f"Download failed: {str(e)}", 500
-from flask import session
-
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     user_email = session.get('user_email')
     if not user_email:
         return "Unauthorized", 401
+
+    # 🔒 Verify user before upload
+    try:
+        check = requests.get(f"{LOCAL_API}/check-user-verified", params={"email": user_email})
+        if check.status_code != 200 or not check.json().get('verified'):
+            flash("You must verify your email before uploading.")
+            return redirect(url_for('upload'))
+    except Exception as e:
+        flash(f"Could not confirm verification: {e}")
+        return redirect(url_for('upload'))
 
     if request.method == 'POST':
         file = request.files.get('file')
@@ -214,7 +236,6 @@ def upload():
 
         filename = secure_filename(file.filename)
 
-        # Send file to local API
         try:
             res = requests.post(
                 f"{LOCAL_API}/store-user-image",
@@ -234,6 +255,7 @@ def upload():
         return redirect(url_for('upload'))
 
     return render_template('upload.html')
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
