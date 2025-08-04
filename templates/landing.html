@@ -149,8 +149,8 @@
       overlay.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
 
       // Flip visibility logic based on new label positions
-      beforeLabel.style.opacity = value < 10 ? '0' : '1'; // right-side label fades near left
-      afterLabel.style.opacity = value > 90 ? '0' : '1';  // left-side label fades near right
+      afterLabel.style.opacity = value < 10 ? '0' : '1'; // right-side label fades near left
+      beforeLabel.style.opacity = value > 90 ? '0' : '1';  // left-side label fades near right
     });
   </script>
 </body>
