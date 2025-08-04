@@ -10,31 +10,32 @@
     }
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(145deg, #e6f0ff, #f2f7ff);
+      background: #121212;
       margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       padding: 20px;
+      color: #f0f0f0;
     }
     .container {
-      background: white;
+      background: #1e1e1e;
       padding: 40px;
       border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
       max-width: 900px;
       width: 100%;
       text-align: center;
     }
     h1 {
-      color: #2c3e50;
+      color: #ffffff;
       font-size: 36px;
       margin-bottom: 20px;
     }
     p.description {
       font-size: 18px;
-      color: #444;
+      color: #ccc;
       margin-bottom: 40px;
       line-height: 1.7;
       max-width: 750px;
@@ -65,10 +66,9 @@
     .slider-wrapper {
       position: relative;
       width: 100%;
-      overflow: hidden;
       border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-      border: 1px solid #ccc;
+      overflow: hidden;
+      border: 1px solid #444;
     }
     .slider-wrapper img {
       display: block;
@@ -79,13 +79,16 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 50%;
-      overflow: hidden;
       height: 100%;
+      width: 100%;
+      overflow: hidden;
       pointer-events: none;
+      clip-path: inset(0 50% 0 0); /* Initially shows half */
+      transition: clip-path 0.1s linear;
     }
     .slider-overlay img {
       width: 100%;
+      height: auto;
     }
     .slider-input {
       width: 100%;
@@ -95,12 +98,12 @@
     .label-after {
       position: absolute;
       top: 10px;
-      background: rgba(255,255,255,0.8);
+      background: rgba(0, 0, 0, 0.6);
       padding: 5px 10px;
       font-weight: bold;
       border-radius: 4px;
       font-size: 14px;
-      color: #333;
+      color: #f0f0f0;
     }
     .label-before {
       left: 10px;
@@ -122,7 +125,7 @@
     <div class="slider-container">
       <div class="slider-wrapper">
         <img src="{{ url_for('static', filename='images/before.png') }}" alt="Before Slide">
-        <div class="slider-overlay">
+        <div class="slider-overlay" id="overlay">
           <img src="{{ url_for('static', filename='images/after.png') }}" alt="After Slide">
         </div>
         <div class="label-before">Before</div>
@@ -136,10 +139,10 @@
 
   <script>
     const slider = document.getElementById('imageSlider');
-    const overlay = document.querySelector('.slider-overlay');
+    const overlay = document.getElementById('overlay');
 
     slider.addEventListener('input', () => {
-      overlay.style.width = `${slider.value}%`;
+      overlay.style.clipPath = `inset(0 ${100 - slider.value}% 0 0)`;
     });
   </script>
 </body>
