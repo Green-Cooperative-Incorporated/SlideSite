@@ -45,6 +45,17 @@
       margin-bottom: 10px;
       color: red;
     }
+    progress {
+      width: 100%;
+      height: 20px;
+      margin-top: 10px;
+      display: none;
+    }
+    #statusText {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -61,12 +72,61 @@
       {% endif %}
     {% endwith %}
 
-    <form method="POST" enctype="multipart/form-data">
+    <form id="uploadForm" enctype="multipart/form-data">
       <input type="file" name="file" accept=".svs,.tif,.tiff" required>
       <input type="submit" value="Upload">
     </form>
 
+    <progress id="progressBar" value="0" max="100"></progress>
+    <p id="statusText"></p>
+
     <p style="text-align:center;"><a href="{{ url_for('slidesite') }}">Back to site</a></p>
   </div>
+
+  <script>
+    const form = document.getElementById("uploadForm");
+    const progressBar = document.getElementById("progressBar");
+    const statusText = document.getElementById("statusText");
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const fileInput = form.querySelector("input[name='file']");
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "{{ url_for('upload') }}", true);
+
+      // Update progress bar
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+          const percent = (e.loaded / e.total) * 100;
+          progressBar.style.display = "block";
+          progressBar.value = percent;
+          statusText.textContent = `Uploading... ${Math.round(percent)}%`;
+        }
+      };
+
+      // Handle response
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          statusText.textContent = "Upload complete!";
+          window.location.href = "{{ url_for('slidesite', upload_success=True) }}";
+        } else {
+          statusText.textContent = "Upload failed.";
+        }
+      };
+
+      xhr.onerror = function () {
+        statusText.textContent = "An error occurred during the upload.";
+      };
+
+      xhr.send(formData);
+    });
+  </script>
 </body>
 </html>

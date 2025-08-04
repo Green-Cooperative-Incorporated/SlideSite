@@ -174,6 +174,7 @@ def upload_slide():
         img_bytes = BytesIO()
         thumbnail.save(img_bytes, format='PNG')
         img_data = img_bytes.getvalue()
+        thumbnail_filename = os.path.splitext(filename)[0] + ".png"
 
         # Save thumbnail to DB, 1 per user
         conn = sqlite3.connect(DB_PATH)
@@ -185,7 +186,7 @@ def upload_slide():
                 filename=excluded.filename,
                 image_data=excluded.image_data,
                 uploaded_at=CURRENT_TIMESTAMP
-        ''', (user_email, filename, img_data))
+        ''', (user_email, thumbnail_filename, img_data))
         conn.commit()
         conn.close()
 

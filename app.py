@@ -262,7 +262,7 @@ Thank you for using SlideSite!
                 except Exception as e:
                     flash(f"Upload succeeded, but email failed to send: {e}")
 
-                return redirect(url_for('slidesite', upload_success=True))
+                return "Upload complete", 200  
             else:
                 flash(f"Upload failed: {res.text}")
         except Exception as e:
