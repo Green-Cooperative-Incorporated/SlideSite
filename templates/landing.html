@@ -11,13 +11,13 @@
     body {
       font-family: 'Inter', sans-serif;
       background: #121212;
+      color: #f0f0f0;
       margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       padding: 20px;
-      color: #f0f0f0;
     }
     .container {
       background: #1e1e1e;
@@ -29,9 +29,9 @@
       text-align: center;
     }
     h1 {
-      color: #ffffff;
       font-size: 36px;
       margin-bottom: 20px;
+      color: #ffffff;
     }
     p.description {
       font-size: 18px;
@@ -83,7 +83,7 @@
       width: 100%;
       overflow: hidden;
       pointer-events: none;
-      clip-path: inset(0 50% 0 0); /* Initially shows half */
+      clip-path: inset(0 50% 0 0);
       transition: clip-path 0.1s linear;
     }
     .slider-overlay img {
@@ -104,12 +104,13 @@
       border-radius: 4px;
       font-size: 14px;
       color: #f0f0f0;
+      transition: opacity 0.3s ease;
     }
     .label-before {
-      left: 10px;
+      right: 10px; /* flipped */
     }
     .label-after {
-      right: 10px;
+      left: 10px; /* flipped */
     }
   </style>
 </head>
@@ -128,30 +129,29 @@
         <div class="slider-overlay" id="overlay">
           <img src="{{ url_for('static', filename='images/after.png') }}" alt="After Slide">
         </div>
-        <div class="label-before">Before</div>
-        <div class="label-after">After</div>
+        <div class="label-before" id="labelBefore">Before</div>
+        <div class="label-after" id="labelAfter">After</div>
         <input type="range" min="0" max="100" value="50" class="slider-input" id="imageSlider">
       </div>
     </div>
 
     <a href="{{ url_for('login') }}" class="button">Log In to Get Started</a>
   </div>
-<script>
-  const slider = document.getElementById('imageSlider');
-  const overlay = document.getElementById('overlay');
-  const beforeLabel = document.querySelector('.label-before');
-  const afterLabel = document.querySelector('.label-after');
 
-  slider.addEventListener('input', () => {
-    const value = parseInt(slider.value);
-    overlay.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
+  <script>
+    const slider = document.getElementById('imageSlider');
+    const overlay = document.getElementById('overlay');
+    const beforeLabel = document.getElementById('labelBefore');
+    const afterLabel = document.getElementById('labelAfter');
 
-    beforeLabel.style.opacity = value > 90 ? '0' : '1';
+    slider.addEventListener('input', () => {
+      const value = parseInt(slider.value);
+      overlay.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
 
-    afterLabel.style.opacity = value < 10 ? '0' : '1';
-  });
-</script>
-
-
+      // Flip visibility logic based on new label positions
+      beforeLabel.style.opacity = value < 10 ? '0' : '1'; // right-side label fades near left
+      afterLabel.style.opacity = value > 90 ? '0' : '1';  // left-side label fades near right
+    });
+  </script>
 </body>
 </html>
