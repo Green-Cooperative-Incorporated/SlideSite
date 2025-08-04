@@ -29,14 +29,17 @@
     }
     h1 {
       color: #2c3e50;
-      font-size: 32px;
-      margin-bottom: 16px;
+      font-size: 36px;
+      margin-bottom: 20px;
     }
-    p {
+    p.description {
       font-size: 18px;
-      color: #555;
-      margin-bottom: 32px;
-      line-height: 1.6;
+      color: #444;
+      margin-bottom: 40px;
+      line-height: 1.7;
+      max-width: 750px;
+      margin-left: auto;
+      margin-right: auto;
     }
     .button {
       display: inline-block;
@@ -48,59 +51,96 @@
       font-size: 16px;
       font-weight: 600;
       transition: background-color 0.3s ease;
+      margin-top: 30px;
     }
     .button:hover {
       background-color: #3367d6;
     }
-    .image-comparison {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
+    .slider-container {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
     }
-    .image-box {
-      text-align: center;
-    }
-    .image-box img {
-      width: 260px;
-      height: auto;
+    .slider-wrapper {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
       border-radius: 12px;
-      border: 1px solid #ddd;
       box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-      transition: transform 0.3s ease;
+      border: 1px solid #ccc;
     }
-    .image-box img:hover {
-      transform: scale(1.03);
+    .slider-wrapper img {
+      display: block;
+      width: 100%;
+      height: auto;
     }
-    .image-box p {
+    .slider-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      overflow: hidden;
+      height: 100%;
+      pointer-events: none;
+    }
+    .slider-overlay img {
+      width: 100%;
+    }
+    .slider-input {
+      width: 100%;
       margin-top: 10px;
-      font-weight: 600;
+    }
+    .label-before,
+    .label-after {
+      position: absolute;
+      top: 10px;
+      background: rgba(255,255,255,0.8);
+      padding: 5px 10px;
+      font-weight: bold;
+      border-radius: 4px;
+      font-size: 14px;
       color: #333;
+    }
+    .label-before {
+      left: 10px;
+    }
+    .label-after {
+      right: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Welcome to SlideSite</h1>
-    <p>
-      Upload <code>.svs</code> or <code>.tif</code> whole-slide pathology images.<br>
-      SlideSite uses a pretrained machine learning model to analyze tissue samples and highlight potential cancerous regions.<br>
-      After processing, download your result as a thumbnail heatmap.
+    <p class="description">
+      Upload high-resolution pathology slides (<code>.svs</code>, <code>.tif</code>) and let our AI model analyze them.
+      SlideSite automatically highlights suspicious regions and returns a visual thumbnail that reveals possible cancerous areas —
+      ready to review and download in seconds.
     </p>
 
-    <div class="image-comparison">
-      <div class="image-box">
-        <img src="{{ url_for('static', filename='images/before.png') }}" alt="Before Image">
-        <p>Before</p>
-      </div>
-      <div class="image-box">
-        <img src="{{ url_for('static', filename='images/after.png') }}" alt="After Image">
-        <p>After</p>
+    <div class="slider-container">
+      <div class="slider-wrapper">
+        <img src="{{ url_for('static', filename='images/before.png') }}" alt="Before Slide">
+        <div class="slider-overlay">
+          <img src="{{ url_for('static', filename='images/after.png') }}" alt="After Slide">
+        </div>
+        <div class="label-before">Before</div>
+        <div class="label-after">After</div>
+        <input type="range" min="0" max="100" value="50" class="slider-input" id="imageSlider">
       </div>
     </div>
 
     <a href="{{ url_for('login') }}" class="button">Log In to Get Started</a>
   </div>
+
+  <script>
+    const slider = document.getElementById('imageSlider');
+    const overlay = document.querySelector('.slider-overlay');
+
+    slider.addEventListener('input', () => {
+      overlay.style.width = `${slider.value}%`;
+    });
+  </script>
 </body>
 </html>
