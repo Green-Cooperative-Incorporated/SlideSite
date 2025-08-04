@@ -3,63 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <title>Welcome to SlideSite</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background: #e8f0fe;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #e6f0ff, #f2f7ff);
       margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      padding: 20px;
     }
     .container {
       background: white;
       padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-      width: 800px;
-      max-width: 95%;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 900px;
+      width: 100%;
       text-align: center;
     }
     h1 {
-      color: #4285f4;
+      color: #2c3e50;
+      font-size: 32px;
+      margin-bottom: 16px;
     }
     p {
       font-size: 18px;
-      margin: 20px 0;
+      color: #555;
+      margin-bottom: 32px;
+      line-height: 1.6;
     }
     .button {
       display: inline-block;
-      padding: 12px 24px;
+      padding: 12px 28px;
       background-color: #4285f4;
       color: white;
       text-decoration: none;
-      border-radius: 5px;
+      border-radius: 6px;
       font-size: 16px;
-      margin-top: 20px;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
     }
     .button:hover {
-      background-color: #357ae8;
+      background-color: #3367d6;
     }
     .image-comparison {
       display: flex;
       justify-content: center;
       gap: 40px;
-      margin-top: 30px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
     }
     .image-box {
       text-align: center;
     }
     .image-box img {
-      width: 250px;
+      width: 260px;
       height: auto;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+    }
+    .image-box img:hover {
+      transform: scale(1.03);
     }
     .image-box p {
       margin-top: 10px;
-      font-weight: bold;
+      font-weight: 600;
+      color: #333;
     }
   </style>
 </head>
@@ -67,9 +84,9 @@
   <div class="container">
     <h1>Welcome to SlideSite</h1>
     <p>
-      SlideSite is a platform that allows you to upload whole-slide images (<code>.svs</code>, <code>.tif</code>).
-      These slides are processed by a pretrained machine learning model that detects and highlights
-      potential cancerous regions. After processing, you’ll be able to download the result as a thumbnail image.
+      Upload <code>.svs</code> or <code>.tif</code> whole-slide pathology images.<br>
+      SlideSite uses a pretrained machine learning model to analyze tissue samples and highlight potential cancerous regions.<br>
+      After processing, download your result as a thumbnail heatmap.
     </p>
 
     <div class="image-comparison">
@@ -83,7 +100,7 @@
       </div>
     </div>
 
-    <a href="{{ url_for('login') }}" class="button">Log In</a>
+    <a href="{{ url_for('login') }}" class="button">Log In to Get Started</a>
   </div>
 </body>
 </html>

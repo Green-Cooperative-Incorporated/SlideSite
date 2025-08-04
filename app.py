@@ -93,9 +93,7 @@ USER_CREDENTIALS = {
 def landing():
     return render_template('landing.html')
 
-@app.route('/login')
-def home():
-    return redirect(url_for('login'))
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
