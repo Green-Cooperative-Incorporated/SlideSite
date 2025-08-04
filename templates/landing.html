@@ -146,13 +146,12 @@
     const value = parseInt(slider.value);
     overlay.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
 
-    // Hide "Before" label when it's mostly hidden
-    beforeLabel.style.opacity = value < 10 ? '0' : '1';
+    beforeLabel.style.opacity = value > 90 ? '0' : '1';
 
-    // Hide "After" label when it's mostly hidden
-    afterLabel.style.opacity = value > 90 ? '0' : '1';
+    afterLabel.style.opacity = value < 10 ? '0' : '1';
   });
 </script>
+
 
 </body>
 </html>

@@ -6,21 +6,31 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #e8f0fe;
+      background: #121212;
+      color: #f0f0f0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
     .content {
       text-align: center;
-      background: white;
+      background: #1e1e1e;
       padding: 40px;
       border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      width: 350px;
     }
     h1 {
-      color: #4285f4;
+      color: #ffffff;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 16px;
+      color: #ccc;
+      margin-bottom: 30px;
     }
     .button {
       display: inline-block;
@@ -29,7 +39,11 @@
       background-color: #4285f4;
       color: white;
       text-decoration: none;
+      border: none;
       border-radius: 5px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
     }
     .button:hover {
       background-color: #357ae8;
@@ -39,7 +53,7 @@
 <body>
   <div class="content">
     <h1>Welcome to SlideSite!</h1>
-    <p>Upload a slide (.svs or .tif) and download your generated thumbnail.</p>
+    <p>Upload a slide (<code>.svs</code> or <code>.tif</code>) and download your generated thumbnail.</p>
 
     <a href="{{ url_for('upload') }}" class="button">
       Upload Slide File
