@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to SlideSite</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e8f0fe;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      width: 800px;
+      max-width: 95%;
+      text-align: center;
+    }
+    h1 {
+      color: #4285f4;
+    }
+    p {
+      font-size: 18px;
+      margin: 20px 0;
+    }
+    .button {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #4285f4;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    .button:hover {
+      background-color: #357ae8;
+    }
+    .image-comparison {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 30px;
+    }
+    .image-box {
+      text-align: center;
+    }
+    .image-box img {
+      width: 250px;
+      height: auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .image-box p {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to SlideSite</h1>
+    <p>
+      SlideSite is a platform that allows you to upload whole-slide images (<code>.svs</code>, <code>.tif</code>).
+      These slides are processed by a pretrained machine learning model that detects and highlights
+      potential cancerous regions. After processing, you’ll be able to download the result as a thumbnail image.
+    </p>
+
+    <div class="image-comparison">
+      <div class="image-box">
+        <img src="{{ url_for('static', filename='images/before.png') }}" alt="Before Image">
+        <p>Before</p>
+      </div>
+      <div class="image-box">
+        <img src="{{ url_for('static', filename='images/after.png') }}" alt="After Image">
+        <p>After</p>
+      </div>
+    </div>
+
+    <a href="{{ url_for('login') }}" class="button">Log In</a>
+  </div>
+</body>
+</html>

@@ -89,8 +89,11 @@ USER_CREDENTIALS = {
     'username': 'admin',
     'password': 'password123'
 }
-
 @app.route('/')
+def landing():
+    return render_template('landing.html')
+
+@app.route('/login')
 def home():
     return redirect(url_for('login'))
 
@@ -254,7 +257,7 @@ def upload():
 Your slide ({filename}) has been successfully uploaded, and your thumbnail has been generated.
 
 You can download it from your dashboard here:
-{url_for('download_my_image', _external=True)}
+{url_for('download_image', _external=True)}
 
 Thank you for using SlideSite!
 """
