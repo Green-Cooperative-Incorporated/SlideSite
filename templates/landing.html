@@ -136,14 +136,23 @@
 
     <a href="{{ url_for('login') }}" class="button">Log In to Get Started</a>
   </div>
+<script>
+  const slider = document.getElementById('imageSlider');
+  const overlay = document.getElementById('overlay');
+  const beforeLabel = document.querySelector('.label-before');
+  const afterLabel = document.querySelector('.label-after');
 
-  <script>
-    const slider = document.getElementById('imageSlider');
-    const overlay = document.getElementById('overlay');
+  slider.addEventListener('input', () => {
+    const value = parseInt(slider.value);
+    overlay.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
 
-    slider.addEventListener('input', () => {
-      overlay.style.clipPath = `inset(0 ${100 - slider.value}% 0 0)`;
-    });
-  </script>
+    // Hide "Before" label when it's mostly hidden
+    beforeLabel.style.opacity = value < 10 ? '0' : '1';
+
+    // Hide "After" label when it's mostly hidden
+    afterLabel.style.opacity = value > 90 ? '0' : '1';
+  });
+</script>
+
 </body>
 </html>
