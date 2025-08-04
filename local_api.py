@@ -3,7 +3,9 @@ import os
 import sqlite3
 import numpy as np
 from dotenv import load_dotenv
-
+from PIL import Image
+import openslide
+from io import BytesIO
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')  # Loaded from your local .env
 
@@ -144,23 +146,38 @@ def register_user():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/store-user-image', methods=['POST'])
-@app.route('/store-user-image', methods=['POST'])
-def store_user_image():
+
+@app.route('/upload-slide', methods=['POST'])
+def upload_slide():
     try:
-        data = request.form
-        user_email = data.get('user_email')
-        filename = data.get('filename')
-        image_file = request.files.get('file')
+        user_email = request.form.get('user_email')
+        slide_file = request.files.get('file')
 
-        if not user_email or not filename or not image_file:
-            return "Missing required fields", 400
+        if not user_email or not slide_file:
+            return "Missing data", 400
 
-        image_data = image_file.read()
+        # Check for supported file type
+        filename = slide_file.filename
+        if not filename.lower().endswith(('.svs', '.tif', '.tiff')):
+            return "Invalid slide format", 400
 
+        # Save slide to temp directory
+        temp_path = os.path.join("temp_slides", filename)
+        os.makedirs("temp_slides", exist_ok=True)
+        slide_file.save(temp_path)
+
+        # Generate thumbnail using OpenSlide
+        slide = openslide.open_slide(temp_path)
+        thumbnail = slide.get_thumbnail((2048, 2048))
+
+        # Save thumbnail to bytes
+        img_bytes = BytesIO()
+        thumbnail.save(img_bytes, format='PNG')
+        img_data = img_bytes.getvalue()
+
+        # Save thumbnail to DB, 1 per user
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
-        # Overwrite if entry for user exists
         cur.execute('''
             INSERT INTO user_images (user_email, filename, image_data)
             VALUES (?, ?, ?)
@@ -168,13 +185,15 @@ def store_user_image():
                 filename=excluded.filename,
                 image_data=excluded.image_data,
                 uploaded_at=CURRENT_TIMESTAMP
-        ''', (user_email, filename, image_data))
+        ''', (user_email, filename, img_data))
         conn.commit()
         conn.close()
 
-        return jsonify({"status": "success", "filename": filename})
+        return jsonify({"status": "success", "message": "Slide uploaded and thumbnail saved."})
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 @app.route('/check-user-verified', methods=['GET'])
 def check_user_verified():
     email = request.args.get('email')

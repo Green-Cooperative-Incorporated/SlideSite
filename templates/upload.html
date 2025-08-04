@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Upload PNG</title>
+  <title>Upload Slide</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -49,7 +49,8 @@
 </head>
 <body>
   <div class="container">
-    <h2>Upload PNG</h2>
+    <h2>Upload Slide File (.svs or .tif)</h2>
+
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <div class="messages">
@@ -59,10 +60,12 @@
         </div>
       {% endif %}
     {% endwith %}
+
     <form method="POST" enctype="multipart/form-data">
-      <input type="file" name="file" accept=".png" required>
+      <input type="file" name="file" accept=".svs,.tif,.tiff" required>
       <input type="submit" value="Upload">
     </form>
+
     <p style="text-align:center;"><a href="{{ url_for('slidesite') }}">Back to site</a></p>
   </div>
 </body>

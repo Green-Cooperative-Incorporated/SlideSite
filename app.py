@@ -4,7 +4,6 @@ import requests
 from flask import send_file, Response
 from werkzeug.security import check_password_hash
 import sqlite3
-
 import json
 from flask_mail import Mail, Message
 
@@ -122,7 +121,9 @@ def login():
 
 @app.route('/slidesite')
 def slidesite():
-    return render_template('slidesite.html')
+    upload_success = request.args.get('upload_success', 'false').lower() == 'true'
+    return render_template('slidesite.html', upload_success=upload_success)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -215,49 +216,61 @@ def download_image(filename):
         )
     except Exception as e:
         return f"Download failed: {str(e)}", 500
+
+
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     user_email = session.get('user_email')
     if not user_email:
         return "Unauthorized", 401
 
-    # 🔒 Verify user before upload
-    try:
-        check = requests.get(f"{LOCAL_API}/check-user-verified", params={"email": user_email})
-        if check.status_code != 200 or not check.json().get('verified'):
-            flash("You must verify your email before uploading.")
-            return redirect(url_for('upload'))
-    except Exception as e:
-        flash(f"Could not confirm verification: {e}")
-        return redirect(url_for('upload'))
-
     if request.method == 'POST':
         file = request.files.get('file')
-        if not file or not file.filename.lower().endswith('.png'):
-            flash("Please upload a valid PNG file.")
-            return redirect(url_for('upload'))
+
+        if not file or not file.filename.lower().endswith(('.svs', '.tif', '.tiff')):
+            flash("Please upload a valid .svs or .tif file.")
+            return render_template('upload.html', upload_success=False)
 
         filename = secure_filename(file.filename)
 
         try:
             res = requests.post(
-                f"{LOCAL_API}/store-user-image",
-                data={
-                    'user_email': user_email,
-                    'filename': filename
-                },
+                f"{LOCAL_API}/upload-slide",
+                data={'user_email': user_email},
                 files={'file': (filename, file.stream, file.mimetype)}
             )
+
             if res.status_code == 200:
-                flash("File uploaded successfully.")
+                flash("Slide uploaded and thumbnail saved.")
+
+                # ✅ Send confirmation email
+                try:
+                    msg = Message(
+                        "SlideSite - Thumbnail Ready",
+                        recipients=[user_email]
+                    )
+                    msg.body = f"""Hi,
+
+Your slide ({filename}) has been successfully uploaded, and your thumbnail has been generated.
+
+You can download it from your dashboard here:
+{url_for('download_my_image', _external=True)}
+
+Thank you for using SlideSite!
+"""
+                    mail.send(msg)
+                except Exception as e:
+                    flash(f"Upload succeeded, but email failed to send: {e}")
+
+                return redirect(url_for('slidesite', upload_success=True))
             else:
                 flash(f"Upload failed: {res.text}")
         except Exception as e:
-            flash(f"Error connecting to local API: {e}")
+            flash(f"Error sending file to local API: {e}")
 
-        return redirect(url_for('upload'))
+        return render_template('upload.html', upload_success=False)
 
-    return render_template('upload.html')
+    return render_template('upload.html', upload_success=False)
 
 
 if __name__ == '__main__':
